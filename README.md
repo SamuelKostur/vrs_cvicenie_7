@@ -36,4 +36,25 @@
 - konfigurácia USART2 sa nelíši od konfigurácie z predchádzajúceho cvičenia
 - V NVIC je potrebné povoliť prerušenia pre DMA(všetky používané kanály) aj USART2
 
-- v ukážkovom kóde je navyše ku vygenerovanému kódu ešte doplňené povolenie konkrétnych prerušení pre DMA a USART (IDLE, HT, TC), priradenie pamäťového miesta pre príjem dát a samotné zapnutie DMA pre obsluhu USART2 Rx a Tx 
+- v ukážkovom kóde je navyše ku vygenerovanému kódu ešte doplňené povolenie konkrétnych prerušení pre DMA a USART (IDLE, HT, TC), priradenie pamäťového miesta pre príjem dát a samotné zapnutie DMA pre obsluhu USART2 Rx a Tx
+
+
+# Zadanie
+- Doimplemetovať chýbajúce častí šablóny programu, vďaka ktorému bude MCU komunikovať s PC prostredníctvom USART2 s využitím DMA.
+- Okrem spracovania prijatých dát bude program pravidelne posielať informácie o aktuálnom vyťažení pamäte, ktorú využíva DMA pre dáta prijaté cez USART.
+- USART komunikácia je obsluhovaná pomocou prerušní HT, TC, IDLE. 
+- K vypracovaniu zadania nie je potrebný žiaden dodatočný HW.
+
+### Úlohy:
+ 1. Stiahnúť/naklonovať vetvu "zadanie_cv7", ktorá predstavuje šablónu projektu, do ktorej je nutné vypracovať nasledujúce úlohy.
+ 2. Pre svoje zadanie si vtvoriť vlastný github repozitár, kam sa nahraje stiahnutá šablóná.
+ 
+ 3. V súbore "Src/usart.c" doplniť konfiguráciu DMA a USART periferie.
+ 
+ 4. V subore "Src/usart.c" implementovať funkciu pre obsluhu prijimania dát od USART s DMA - "USART2_CheckDmaReception". Funkcia musí správne obslúžiť prijímanie dáť od DMA a ich následné posielanie na spracovanie. Kontrolovať zaplnenosť DMA Rx buffera a zabrániť pretečeniu a strate prijatých dát. Buffer využívaný pre DMA USART Rx sa musí používať v normálnom režime, nie kruhovom. Veľkosť buffera je nastavena na 256 bytov. Predpokladá sa, že vysielacia strana naraz odošle maximálne 20 znakov.
+ 
+ 5. V subore "Src/main.c" implementovať funkciu "proccesDmaData", ktorá spracuje prijatá dáta. Spracovať znamená, že po prijatí súboru znakov vyhodnotí koľko z prijatých znakov boli malé písmená a koľko boli veľké písmená. Každý súbor znakov, ktorý má byť spracovaný sa musí začínať znakom "#" a končiť znakom "$". To znamená, že platný súbor znaokov, pre ktorý sa vyhodnotí počet malých a veľkých písmen bude vyzerať napríklad ako "#Platn15uborZnakov$". Pokiaľ nie je detegovaný štartovací znak "#", funkcia bude prijaté znaky ignorovať. Ak bol prijatý štartovací znak, súbor znakov bude vyhodnotený až po prijatí ukončovacieho znaku "$". Ak po prijatí štartovacieho znaku nabude počas nasledujúcich 35 znakov prijatý ukončovací znak, prijaté dáta sa zahodia a funkcia bude čakať na nový štartovací znak.
+ 
+ 6. V subore "Src/main.c" implementovať periodické odosielanie dát o aktuálnom stave DMA Rx buffera cez USART2 do PC. Formát spravý a frekvencia posielania sú špecifikované inštrukciami v komentáry vo while slučke. Implementácia periodického odoielania môže byť priamo vo while slučke poprípade si môžete vytvoriť vlastnú funkciu, ktorú budete vo while slučke volať. V tomto smere máte voľnú ruku. Podstatné je, aby odosielané dáta boli zobraziteľné v PC pomocou terminálu.
+ 
+ 7. Odovzdáva sa odkaz k vašemu repozitáru.
