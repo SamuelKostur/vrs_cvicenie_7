@@ -32,8 +32,9 @@
 
 /* USER CODE BEGIN Private defines */
 #define DMA_USART2_BUFFER_SIZE 256
-
+#define USART2_MAX_SINGLE_MESSAGE_SIZE 20
 /* USER CODE END Private defines */
+uint16_t USART2_dma_occupied_memory;
 
 void MX_USART2_UART_Init(void);
 void USART2_PutBuffer(uint8_t *buffer, uint8_t length);

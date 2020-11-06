@@ -23,6 +23,7 @@
 #include "dma.h"
 #include "usart.h"
 #include "gpio.h"
+#include "stdio.h"
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -34,12 +35,11 @@ void SystemClock_Config(void);
  * @param1 - received sign
  */
 void proccesDmaData(uint8_t sign);
-
+void characterCaseCounter(char *data, uint8_t length);
+void sendBufOccupMessage(uint16_t bufferCapacity,uint16_t occupMem);
 
 /* Space for your global variables. */
-
-	// type your global variables here:
-
+letter_count_ letter_count;
 
 int main(void)
 {
@@ -59,7 +59,7 @@ int main(void)
 
   /* Space for your local variables, callback registration ...*/
 
-  	  //type your code here:
+  USART2_RegisterCallback(proccesDmaData);
 
   while (1)
   {
@@ -68,8 +68,8 @@ int main(void)
 	   * Message format - "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %]: %f%"
 	   * Example message (what I wish to see in terminal) - Buffer capacity: 1000 bytes, occupied memory: 231 bytes, load [in %]: 23.1%
 	   */
-
-  	  	  	  //type your code here:
+	  sendBufOccupMessage(DMA_USART2_BUFFER_SIZE, USART2_dma_occupied_memory);
+	  LL_mDelay(200);
   }
   /* USER CODE END 3 */
 }
@@ -109,11 +109,82 @@ void SystemClock_Config(void)
 /*
  * Implementation of function processing data received via USART.
  */
-void proccesDmaData(uint8_t sign)
-{
-	/* Process received data */
+void proccesDmaData(uint8_t sign){
+	const uint8_t buffer_length = 36;
+	static char buffer[36];
+	static uint8_t recieved_starting_char;
+	static uint8_t pos;
 
-		// type your algorithm here:
+	//check for starting character
+	if(sign == '#'){
+		recieved_starting_char = 1;
+	}
+	else if(recieved_starting_char == 0){
+		return;
+	}
+
+	//starting character received
+	if(pos < buffer_length ){
+		buffer[pos] = sign;
+		pos++;
+	}
+	else{
+		// ending '$' char not received within 35 function calls since starting char
+		recieved_starting_char = 0;
+		pos = 0;
+	}
+
+	//check for ending character
+	if((sign == '$')&&(recieved_starting_char)){
+		characterCaseCounter(buffer,pos);
+		recieved_starting_char = 0;
+		pos = 0;
+	}
+}
+
+void characterCaseCounter(char *data, uint8_t length){
+	letter_count.small_letter = 0;
+	letter_count.capital_letter = 0;
+	for(int i = 0; i<length; i++){
+		//count upper case characters
+		if(('A' <= data[i]) && (data[i] <= 'Z')){
+			letter_count.capital_letter++;
+		}
+		//count lower case characters
+		if(('a' <= data[i]) && (data[i] <= 'z')){
+			letter_count.small_letter++;
+		}
+	}
+}
+
+void sendBufOccupMessage(uint16_t bufferCapacity,uint16_t occupMem){
+	//Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %]: %f%"
+	uint8_t numString[10];
+	static uint8_t part1[] = "Buffer capacity: ";
+	USART2_PutBuffer(part1, sizeof(part1));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+	USART2_PutBuffer(numString, sprintf((char*)numString,"%d",bufferCapacity));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+	static uint8_t part2[] = " bytes, occupied memory: ";
+	USART2_PutBuffer(part2, sizeof(part2));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+	USART2_PutBuffer(numString, sprintf((char*)numString,"%d",occupMem));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+	static uint8_t part3[] = " bytes, load [in %]: ";
+	USART2_PutBuffer(part3, sizeof(part3));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+
+	USART2_PutBuffer(numString, sprintf((char*)numString,"%f",(float)occupMem/bufferCapacity*100));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
+
+	static uint8_t part4[] = "\n\r";
+	USART2_PutBuffer(part4, sizeof(part4));
+	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
 }
 
 
