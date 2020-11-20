@@ -68,7 +68,13 @@ int main(void)
 	   * Message format - "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %]: %f%"
 	   * Example message (what I wish to see in terminal) - Buffer capacity: 1000 bytes, occupied memory: 231 bytes, load [in %]: 23.1%
 	   */
-	  sendBufOccupMessage(DMA_USART2_BUFFER_SIZE, USART2_dma_occupied_memory);
+	  //sendBufOccupMessage(DMA_USART2_BUFFER_SIZE, USART2_dma_occupied_memory);
+	  static uint8_t infoString[200];
+	  USART2_PutBuffer(infoString, sprintf((char*)infoString,\
+								  "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %%]: %f \n\r",\
+								  DMA_USART2_BUFFER_SIZE,\
+								  USART2_dma_occupied_memory,\
+								  (float)USART2_dma_occupied_memory/DMA_USART2_BUFFER_SIZE*100));
 	  LL_mDelay(200);
   }
   /* USER CODE END 3 */
@@ -156,37 +162,6 @@ void characterCaseCounter(char *data, uint8_t length){
 		}
 	}
 }
-
-void sendBufOccupMessage(uint16_t bufferCapacity,uint16_t occupMem){
-	//Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %]: %f%"
-	uint8_t numString[10];
-	static uint8_t part1[] = "Buffer capacity: ";
-	USART2_PutBuffer(part1, sizeof(part1));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-	USART2_PutBuffer(numString, sprintf((char*)numString,"%d",bufferCapacity));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-	static uint8_t part2[] = " bytes, occupied memory: ";
-	USART2_PutBuffer(part2, sizeof(part2));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-	USART2_PutBuffer(numString, sprintf((char*)numString,"%d",occupMem));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-	static uint8_t part3[] = " bytes, load [in %]: ";
-	USART2_PutBuffer(part3, sizeof(part3));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-
-	USART2_PutBuffer(numString, sprintf((char*)numString,"%f",(float)occupMem/bufferCapacity*100));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-
-	static uint8_t part4[] = "\n\r";
-	USART2_PutBuffer(part4, sizeof(part4));
-	while(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7)){};
-}
-
 
 void Error_Handler(void)
 {
